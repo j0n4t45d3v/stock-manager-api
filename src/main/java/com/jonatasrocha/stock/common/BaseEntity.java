@@ -7,8 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 
 @MappedSuperclass
 public abstract class BaseEntity {
@@ -17,27 +15,16 @@ public abstract class BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "created_at", insertable = true, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", insertable = true, updatable = true)
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private Instant updatedAt;
 
     public BaseEntity(Long id, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    @PrePersist
-    protected void createdAt() {
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void updatedAt() {
-        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
