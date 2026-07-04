@@ -58,9 +58,17 @@ public class SupplierEntity extends BaseEntity {
     public Email getEmail() {
         return this.email;
     }
+    
+    public String getEmailValue() {
+        return this.email.value();
+    }
 
     public Phone getPhone() {
         return this.phone;
+    }
+
+    public String getPhoneValue() {
+        return this.phone.value();
     }
 
     @Embeddable

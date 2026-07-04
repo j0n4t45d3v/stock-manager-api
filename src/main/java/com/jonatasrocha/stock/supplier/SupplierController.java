@@ -46,6 +46,22 @@ public class SupplierController {
         String phone
     ) {}
 
+    public record SupplierResponse(
+        Long id,
+        String name,
+        String email,
+        String phone
+    ) {
+        public static SupplierResponse ofEntity(SupplierEntity entity) {
+            return new SupplierResponse(
+                entity.getId(),
+                entity.getName(),
+                entity.getEmailValue(),
+                entity.getPhoneValue()
+            );
+        }
+    }
+
     @Transactional
     @PostMapping
     public ResponseEntity<?> create(@RequestBody @Valid SupplierRequest request) {
@@ -63,7 +79,7 @@ public class SupplierController {
 
         return ResponseEntity
             .created(location)
-            .body(supplierSaved);
+            .body(SupplierResponse.ofEntity(supplierSaved));
     }
     
     @GetMapping("/{id}")
@@ -74,7 +90,7 @@ public class SupplierController {
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", "Supplier not found"));
         }
-        return ResponseEntity.ok(supplierFound.get());
+        return ResponseEntity.ok(SupplierResponse.ofEntity(supplierFound.get()));
     }
 
     @Transactional
