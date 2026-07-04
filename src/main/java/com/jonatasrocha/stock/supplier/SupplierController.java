@@ -105,7 +105,7 @@ public class SupplierController {
 
         var supplier = supplierFound.get();
         var newSupplier = SupplierEntity.of(supplier.getId(), request.name(), request.email(), request.phone());
-        if (this.supplierRepository.existsByEmailNotAndId(newSupplier.getEmail(), newSupplier.getId())) {
+        if (this.supplierRepository.existsByEmailAndIdNot(newSupplier.getEmail(), newSupplier.getId())) {
             return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of("message", "Already exists a supplier with this same e-mail"));
