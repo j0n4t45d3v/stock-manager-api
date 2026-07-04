@@ -1,7 +1,5 @@
 package com.jonatasrocha.stock.category;
 
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.jonatasrocha.stock.infra.http.Response;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -44,12 +44,15 @@ public class CategoryController {
 
     @Transactional
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody @Valid CategoryRequest request) {
+    public ResponseEntity<Response> create(@RequestBody @Valid CategoryRequest request) {
         var newCategory = CategoryEntity.of(request.name());
         if (this.categoryRepository.existsByName(newCategory.getName())) {
             return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "Already exists a category with this same name"));
+                .body(Response.ofFailure(
+                    "CATEGORY_CONFLICT", 
+                    "Already exists a category with this same name"
+                ));
         }
         var categorySaved = this.categoryRepository.save(newCategory);
         var location = UriComponentsBuilder
@@ -57,20 +60,25 @@ public class CategoryController {
                         .buildAndExpand(categorySaved.getId())
                         .toUri();
 
+        var categoryResponse = CategoryResponse.ofEntity(categorySaved);
         return ResponseEntity
             .created(location)
-            .body(CategoryResponse.ofEntity(categorySaved));
+            .body(Response.ofSuccess(categoryResponse));
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOne(@PathVariable("id") Long id) {
+    public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
         var categoryFound = this.categoryRepository.findById(id);
         if (categoryFound.isEmpty()) {
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("message", "Category not found"));
+                .body(Response.ofFailure(
+                    "CATEGORY_NOT_FOUND", 
+                    "Category not found"
+                ));
         }
-        return ResponseEntity.ok(CategoryResponse.ofEntity(categoryFound.get()));
+        var categoryResponse = CategoryResponse.ofEntity(categoryFound.get());
+        return ResponseEntity.ok(Response.ofSuccess(categoryResponse));
     }
 
     @Transactional
@@ -80,7 +88,10 @@ public class CategoryController {
         if (categoryFound.isEmpty()) {
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("message", "Category not found"));
+                .body(Response.ofFailure(
+                    "CATEGORY_NOT_FOUND",
+                    "Category not found"
+                ));
         }
 
         var category = categoryFound.get();
@@ -88,7 +99,10 @@ public class CategoryController {
         if (this.categoryRepository.existsByNameAndIdNot(newCategory.getName(), newCategory.getId())) {
             return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "Already exists a category with this same name"));
+                .body(Response.ofFailure(
+                    "CATEGORY_CONFLICT",
+                     "Already exists a category with this same name"
+                ));
         }
 
         this.categoryRepository.save(newCategory);
@@ -101,7 +115,10 @@ public class CategoryController {
         if (!this.categoryRepository.existsById(id)) {
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("message", "Category not found"));
+                .body(Response.ofFailure(
+                    "CATEGORY_NOT_FOUND",
+                    "Category not found"
+                ));
         }
 
         this.categoryRepository.deleteById(id);
