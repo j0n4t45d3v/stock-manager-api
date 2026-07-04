@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 
 @RestController
@@ -32,6 +33,7 @@ public class SupplierController {
     }
 
     public record SupplierRequest(
+        @Size(max = 60, message = "Name cannot has more that 60 characteres.")
         @NotBlank
         String name,
 
