@@ -12,8 +12,8 @@ BEGIN
     ALTER TABLE tb_categories 
         ADD CONSTRAINT pk_categories PRIMARY KEY (id);
 
-    ALTER TABLE tb_suppliers 
-        ADD CONSTRAINT unq_name_categories UNIQUE (email);
+    ALTER TABLE tb_categories 
+        ADD CONSTRAINT unq_name_categories UNIQUE (name);
 
     CREATE OR REPLACE TRIGGER tg_categories_update_at
     BEFORE UPDATE ON tb_categories
