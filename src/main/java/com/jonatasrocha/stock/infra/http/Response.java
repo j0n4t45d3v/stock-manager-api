@@ -2,6 +2,9 @@ package com.jonatasrocha.stock.infra.http;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 public abstract class Response {
 
     private final boolean success;
@@ -30,9 +33,11 @@ public abstract class Response {
         return new FailureResponse<>(code, message, details);
     }
 
+    @JsonPropertyOrder(value = {"success", "data", "meta"})
     public static class SuccessResponse<T, M> extends Response {
 
         private final T data;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         private final M meta;
 
         protected SuccessResponse(T data, M meta) {
@@ -51,6 +56,7 @@ public abstract class Response {
 
     }
 
+    @JsonPropertyOrder(value = {"success", "error"})
     public static class FailureResponse<D> extends Response {
 
         private final Error<D> error;
