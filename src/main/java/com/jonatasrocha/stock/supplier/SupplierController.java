@@ -1,6 +1,5 @@
 package com.jonatasrocha.stock.supplier;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,8 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
 
+import com.jonatasrocha.stock.common.BaseController;
 import com.jonatasrocha.stock.infra.http.Response;
 
 import jakarta.validation.Valid;
@@ -24,7 +23,7 @@ import jakarta.validation.constraints.Size;
 
 @RestController
 @RequestMapping("/v1/suppliers")
-public class SupplierController {
+public class SupplierController extends BaseController {
 
     private final SupplierRepository supplierRepository;
 
@@ -67,83 +66,53 @@ public class SupplierController {
     public ResponseEntity<Response> create(@RequestBody @Valid SupplierRequest request) {
         var newSupplier = SupplierEntity.of(request.name(), request.email(), request.phone());
         if (this.supplierRepository.existsByEmail(newSupplier.getEmail())) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Response.ofFailure(
-                    "SUPPLIER_CONFLICT", 
-                    "Already exists a supplier with this same e-mail"
-                ));
+            return responseConflict( "SUPPLIER_CONFLICT", "Already exists a supplier with this same e-mail");
         }
         var supplierSaved = this.supplierRepository.save(newSupplier);
-        var location = UriComponentsBuilder
-                        .fromPath("/{id}")
-                        .buildAndExpand(supplierSaved.getId())
-                        .toUri();
-
-        var supplierResponse = SupplierResponse.ofEntity(supplierSaved);
-        return ResponseEntity
-            .created(location)
-            .body(Response.ofSuccess(supplierResponse));
+        return responseCreated(
+            SupplierResponse.ofEntity(supplierSaved),
+            "/v1/suppliers/{id}",
+            supplierSaved.getId()
+        );
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
         var supplierFound = this.supplierRepository.findById(id);
         if (supplierFound.isEmpty()) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "SUPPLIER_NOT_FOUND", 
-                    "Supplier not found"
-                ));
+            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
         }
-        var supplierResponse = SupplierResponse.ofEntity(supplierFound.get());
-        return ResponseEntity.ok(Response.ofSuccess(supplierResponse));
+        return responseOk(SupplierResponse.ofEntity(supplierFound.get()));
     }
 
     @Transactional
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody @Valid SupplierRequest request) {
+    public ResponseEntity<Response> update(@PathVariable("id") Long id, @RequestBody @Valid SupplierRequest request) {
         var supplierFound = this.supplierRepository.findById(id);
         if (supplierFound.isEmpty()) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "SUPPLIER_NOT_FOUND", 
-                    "Supplier not found"
-                ));
+            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
         }
 
         var supplier = supplierFound.get();
         var newSupplier = SupplierEntity.of(supplier.getId(), request.name(), request.email(), request.phone());
         if (this.supplierRepository.existsByEmailAndIdNot(newSupplier.getEmail(), newSupplier.getId())) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Response.ofFailure(
-                    "SUPPLIER_CONFLICT", 
-                    "Already exists a supplier with this same e-mail"
-                ));
+            return responseConflict( "SUPPLIER_CONFLICT", "Already exists a supplier with this same e-mail");
         }
 
         this.supplierRepository.save(newSupplier);
-        return ResponseEntity.noContent().build();
+        return responseNoContent();
     }
 
     @Transactional
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> remove(@PathVariable("id") Long id) {
+    public ResponseEntity<Response> remove(@PathVariable("id") Long id) {
         if (!this.supplierRepository.existsById(id)) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "SUPPLIER_NOT_FOUND", 
-                    "Supplier not found"
-                ));
+            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
         }
 
         this.supplierRepository.deleteById(id);
 
-        return ResponseEntity.noContent().build();
+        return responseNoContent();
     }
 
 }

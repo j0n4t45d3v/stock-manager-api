@@ -1,6 +1,5 @@
 package com.jonatasrocha.stock.category;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,8 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
 
+import com.jonatasrocha.stock.common.BaseController;
 import com.jonatasrocha.stock.infra.http.Response;
 
 import jakarta.validation.Valid;
@@ -21,7 +20,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/v1/categories")
-public class CategoryController {
+public class CategoryController extends BaseController {
 
     private final CategoryRepository categoryRepository;
 
@@ -47,83 +46,55 @@ public class CategoryController {
     public ResponseEntity<Response> create(@RequestBody @Valid CategoryRequest request) {
         var newCategory = CategoryEntity.of(request.name());
         if (this.categoryRepository.existsByName(newCategory.getName())) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Response.ofFailure(
-                    "CATEGORY_CONFLICT", 
-                    "Already exists a category with this same name"
-                ));
+            return responseConflict("CATEGORY_CONFLICT", "Already exists a category with this same name");
         }
         var categorySaved = this.categoryRepository.save(newCategory);
-        var location = UriComponentsBuilder
-                        .fromPath("/{id}")
-                        .buildAndExpand(categorySaved.getId())
-                        .toUri();
-
-        var categoryResponse = CategoryResponse.ofEntity(categorySaved);
-        return ResponseEntity
-            .created(location)
-            .body(Response.ofSuccess(categoryResponse));
+        return responseCreated(
+            CategoryResponse.ofEntity(categorySaved),
+            "/v1/categories/{id}",
+            categorySaved.getId()
+        );
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
         var categoryFound = this.categoryRepository.findById(id);
         if (categoryFound.isEmpty()) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "CATEGORY_NOT_FOUND", 
-                    "Category not found"
-                ));
+            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
         }
-        var categoryResponse = CategoryResponse.ofEntity(categoryFound.get());
-        return ResponseEntity.ok(Response.ofSuccess(categoryResponse));
+        return responseOk(CategoryResponse.ofEntity(categoryFound.get()));
     }
 
     @Transactional
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody @Valid CategoryRequest request) {
+    public ResponseEntity<Response> update(
+        @PathVariable("id") Long id,
+        @RequestBody @Valid CategoryRequest request
+    ) {
         var categoryFound = this.categoryRepository.findById(id);
         if (categoryFound.isEmpty()) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "CATEGORY_NOT_FOUND",
-                    "Category not found"
-                ));
+            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
         }
 
         var category = categoryFound.get();
         var newCategory = CategoryEntity.of(category.getId(), request.name());
         if (this.categoryRepository.existsByNameAndIdNot(newCategory.getName(), newCategory.getId())) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Response.ofFailure(
-                    "CATEGORY_CONFLICT",
-                     "Already exists a category with this same name"
-                ));
+            return responseConflict("CATEGORY_CONFLICT", "Already exists a category with this same name");
         }
 
         this.categoryRepository.save(newCategory);
-        return ResponseEntity.noContent().build();
+        return responseNoContent();
     }
 
     @Transactional
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> remove(@PathVariable("id") Long id) {
+    public ResponseEntity<Response> remove(@PathVariable("id") Long id) {
         if (!this.categoryRepository.existsById(id)) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Response.ofFailure(
-                    "CATEGORY_NOT_FOUND",
-                    "Category not found"
-                ));
+            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
         }
 
         this.categoryRepository.deleteById(id);
-
-        return ResponseEntity.noContent().build();
+        return responseNoContent();
     }
 
 }
