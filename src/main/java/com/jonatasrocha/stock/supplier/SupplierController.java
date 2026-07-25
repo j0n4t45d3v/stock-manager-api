@@ -25,6 +25,12 @@ import jakarta.validation.constraints.Size;
 @RequestMapping("/v1/suppliers")
 public class SupplierController extends BaseController {
 
+    private static final String SUPPLIER_NOT_FOUND_CODE = "SUPPLIER_NOT_FOUND";
+    private static final String SUPPLIER_CONFLICT_CODE = "SUPPLIER_CONFLICT";
+
+    private static final String SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE = "Supplier not found";
+    private static final String SUPPLIER_EMAIL_ALREADY_USED = "Already exists a supplier with this same e-mail";
+
     private final SupplierRepository supplierRepository;
 
     public SupplierController(SupplierRepository supplierRepository) {
@@ -66,7 +72,7 @@ public class SupplierController extends BaseController {
     public ResponseEntity<Response> create(@RequestBody @Valid SupplierRequest request) {
         var newSupplier = SupplierEntity.of(request.name(), request.email(), request.phone());
         if (this.supplierRepository.existsByEmail(newSupplier.getEmail())) {
-            return responseConflict( "SUPPLIER_CONFLICT", "Already exists a supplier with this same e-mail");
+            return responseConflict( SUPPLIER_CONFLICT_CODE, SUPPLIER_EMAIL_ALREADY_USED);
         }
         var supplierSaved = this.supplierRepository.save(newSupplier);
         return responseCreated(
@@ -80,7 +86,7 @@ public class SupplierController extends BaseController {
     public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
         var supplierFound = this.supplierRepository.findById(id);
         if (supplierFound.isEmpty()) {
-            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
+            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
         }
         return responseOk(SupplierResponse.ofEntity(supplierFound.get()));
     }
@@ -90,13 +96,13 @@ public class SupplierController extends BaseController {
     public ResponseEntity<Response> update(@PathVariable("id") Long id, @RequestBody @Valid SupplierRequest request) {
         var supplierFound = this.supplierRepository.findById(id);
         if (supplierFound.isEmpty()) {
-            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
+            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
         }
 
         var supplier = supplierFound.get();
         var newSupplier = SupplierEntity.of(supplier.getId(), request.name(), request.email(), request.phone());
         if (this.supplierRepository.existsByEmailAndIdNot(newSupplier.getEmail(), newSupplier.getId())) {
-            return responseConflict( "SUPPLIER_CONFLICT", "Already exists a supplier with this same e-mail");
+            return responseConflict(SUPPLIER_CONFLICT_CODE, SUPPLIER_EMAIL_ALREADY_USED);
         }
 
         this.supplierRepository.save(newSupplier);
@@ -107,7 +113,7 @@ public class SupplierController extends BaseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Response> remove(@PathVariable("id") Long id) {
         if (!this.supplierRepository.existsById(id)) {
-            return responseNotFound( "SUPPLIER_NOT_FOUND", "Supplier not found");
+            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
         }
 
         this.supplierRepository.deleteById(id);

@@ -22,6 +22,12 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/v1/categories")
 public class CategoryController extends BaseController {
 
+    private static final String CATEGORY_NOT_FOUND_CODE = "CATEGORY_NOT_FOUND";
+    private static final String CATEGORY_CONFLICT_CODE = "CATEGORY_CONFLICT";
+
+    private static final String CATEGORY_NOT_FOUND_DEFAULT_MESSAGE = "Category not found";
+    private static final String CATEGORY_NAME_ALREADY_USED = "This category name is already used by other category";
+
     private final CategoryRepository categoryRepository;
 
     public CategoryController(CategoryRepository categoryRepository) {
@@ -46,7 +52,7 @@ public class CategoryController extends BaseController {
     public ResponseEntity<Response> create(@RequestBody @Valid CategoryRequest request) {
         var newCategory = CategoryEntity.of(request.name());
         if (this.categoryRepository.existsByName(newCategory.getName())) {
-            return responseConflict("CATEGORY_CONFLICT", "Already exists a category with this same name");
+            return responseConflict(CATEGORY_CONFLICT_CODE,CATEGORY_NAME_ALREADY_USED);
         }
         var categorySaved = this.categoryRepository.save(newCategory);
         return responseCreated(
@@ -60,7 +66,7 @@ public class CategoryController extends BaseController {
     public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
         var categoryFound = this.categoryRepository.findById(id);
         if (categoryFound.isEmpty()) {
-            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
+            return responseNotFound(CATEGORY_NOT_FOUND_CODE, CATEGORY_NOT_FOUND_DEFAULT_MESSAGE);
         }
         return responseOk(CategoryResponse.ofEntity(categoryFound.get()));
     }
@@ -73,13 +79,13 @@ public class CategoryController extends BaseController {
     ) {
         var categoryFound = this.categoryRepository.findById(id);
         if (categoryFound.isEmpty()) {
-            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
+            return responseNotFound(CATEGORY_NOT_FOUND_CODE, CATEGORY_NOT_FOUND_DEFAULT_MESSAGE);
         }
 
         var category = categoryFound.get();
         var newCategory = CategoryEntity.of(category.getId(), request.name());
         if (this.categoryRepository.existsByNameAndIdNot(newCategory.getName(), newCategory.getId())) {
-            return responseConflict("CATEGORY_CONFLICT", "Already exists a category with this same name");
+            return responseConflict(CATEGORY_CONFLICT_CODE, CATEGORY_NAME_ALREADY_USED);
         }
 
         this.categoryRepository.save(newCategory);
@@ -90,7 +96,7 @@ public class CategoryController extends BaseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Response> remove(@PathVariable("id") Long id) {
         if (!this.categoryRepository.existsById(id)) {
-            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
+            return responseNotFound(CATEGORY_NOT_FOUND_CODE, CATEGORY_NOT_FOUND_DEFAULT_MESSAGE);
         }
 
         this.categoryRepository.deleteById(id);
