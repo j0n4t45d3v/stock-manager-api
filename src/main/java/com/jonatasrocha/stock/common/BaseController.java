@@ -18,6 +18,10 @@ public class BaseController {
             .body(Response.ofSuccess(content));
     }
 
+    protected <T, M> ResponseEntity<Response> responseOkWithMetadata(T content, M meta) {
+        return ResponseEntity.ok(Response.ofSuccess(content, meta));
+    }
+
     protected <T> ResponseEntity<Response> responseOk(T content) {
         return ResponseEntity.ok(Response.ofSuccess(content));
     }
@@ -47,5 +51,15 @@ public class BaseController {
     ) {
         return ResponseEntity.status(httpStatus)
             .body(Response.ofFailure(code, message));
+    }
+    
+    protected <T, D> ResponseEntity<Response> responseFail(
+        HttpStatus httpStatus,
+        String code,
+        String message,
+        D details
+    ) {
+        return ResponseEntity.status(httpStatus)
+            .body(Response.ofFailureDetails(code, message, details));
     }
 }

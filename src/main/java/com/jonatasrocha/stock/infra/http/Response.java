@@ -26,10 +26,10 @@ public abstract class Response {
     }
 
     public static Response ofFailure(String code, String message) {
-        return new FailureResponse<Void>(code, message, List.of());
+        return new FailureResponse<Void>(code, message, null);
     }
     
-    public static <D> Response ofFailureDetails(String code, String message, List<D> details) {
+    public static <D> Response ofFailureDetails(String code, String message, D details) {
         return new FailureResponse<>(code, message, details);
     }
 
@@ -61,7 +61,7 @@ public abstract class Response {
 
         private final Error<D> error;
 
-        protected FailureResponse(String code, String message, List<D> details) {
+        protected FailureResponse(String code, String message, D details) {
             super(false);
             this.error = new Error<>(code, message, details);
         }
@@ -70,7 +70,7 @@ public abstract class Response {
             return this.error;
         } 
 
-        public record Error<D>(String code, String message, List<D> details) {}
+        public record Error<D>(String code, String message, D details) {}
 
     }
 
