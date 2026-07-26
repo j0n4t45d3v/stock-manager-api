@@ -1,9 +1,13 @@
 package com.jonatasrocha.stock.common;
 
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.jonatasrocha.stock.infra.http.Mapper;
 import com.jonatasrocha.stock.infra.http.Response;
 
 public class BaseController {
@@ -16,6 +20,22 @@ public class BaseController {
         return ResponseEntity
             .created(location)
             .body(Response.ofSuccess(content));
+    }
+
+    protected <T, E extends BaseEntity, M> ResponseEntity<Response> responseCursorPage(
+        Page<E> page,
+        Mapper<E, T> mapper
+    ) {
+        var lessId = page.get()
+            .map(E::getId)
+            .min(Long::compareTo);
+
+        Long nextOffset = lessId.orElse(null);
+        var content = page
+            .map(mapper::map)
+            .getContent();
+        Map<String, Long> metadata = Map.of("nextOffset", nextOffset);
+        return responseOkWithMetadata(content, metadata);
     }
 
     protected <T, M> ResponseEntity<Response> responseOkWithMetadata(T content, M meta) {
