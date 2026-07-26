@@ -1,4 +1,4 @@
-package com.jonatasrocha.stock.product;
+package com.jonatasrocha.stock.inventory;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +12,7 @@ public interface ProductMovementRepository extends JpaRepository<ProductMovement
             SELECT pm
             FROM
                 ProductMovementEntity pm
-            WHERE pm.product.id = ?1
+            WHERE pm.productId = ?1
               AND (?2 is null OR pm.id < ?2)
             ORDER BY 
                 pm.id DESC

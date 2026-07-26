@@ -1,4 +1,4 @@
-package com.jonatasrocha.stock.product;
+package com.jonatasrocha.stock.inventory;
 
 import java.math.BigDecimal;
 
@@ -12,14 +12,16 @@ public interface StockStateRepository extends JpaRepository<StockStateEntity, Lo
     @Query(value = """
     UPDATE StockStateEntity
     SET balance = balance - ?1
-    WHERE product = ?2
+    WHERE productId = ?2
       AND balance >= ?1
     """) 
-    int decreaseBalance(BigDecimal quantity, ProductEntity product);
+    int decreaseBalance(BigDecimal quantity, Long productId);
 
     @Modifying
     @Query(value = """
-    UPDATE StockStateEntity SET balance = balance + ?1 WHERE product = ?2
+    UPDATE StockStateEntity SET balance = balance + ?1 WHERE productId = ?2
     """) 
-    int incrementBalance(BigDecimal quantity, ProductEntity product);
+    int incrementBalance(BigDecimal quantity, Long productId);
+
+    boolean existsByProductId(Long productId);
 }
