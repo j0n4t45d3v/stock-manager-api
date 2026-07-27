@@ -7,7 +7,12 @@ public interface ErrorCode {
     public static final int STATUS_CONFLICT = 409;  
     public static final int STATUS_UNPROCESSABLE_CONTENT = 422;  
 
-    String code();
+    default String code() {
+        if (this instanceof Enum enumClazz) {
+            return enumClazz.name();
+        }
+        throw new UnsupportedOperationException();
+    }
     String message();
     int status();
 
