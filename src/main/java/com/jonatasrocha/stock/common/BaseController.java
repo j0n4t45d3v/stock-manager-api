@@ -64,6 +64,14 @@ public class BaseController {
         return responseFail(HttpStatus.CONFLICT, code, message);
     }
 
+    protected <T> ResponseEntity<Response> responseFail(ErrorCode errorCode) {
+        return responseFail(
+            HttpStatus.valueOf(errorCode.status()),
+            errorCode.code(),
+            errorCode.message()
+        );
+    }
+
     protected <T> ResponseEntity<Response> responseFail(
         HttpStatus httpStatus,
         String code,
