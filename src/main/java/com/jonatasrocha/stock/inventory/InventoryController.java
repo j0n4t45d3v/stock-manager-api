@@ -73,7 +73,7 @@ public class InventoryController extends BaseController {
         if (result.isFailure()) {
             var error = result.error();
             return responseFail(
-                HttpStatus.UNPROCESSABLE_CONTENT,
+                HttpStatus.valueOf(error.status()),
                 error.code(),
                 error.message()
             );
