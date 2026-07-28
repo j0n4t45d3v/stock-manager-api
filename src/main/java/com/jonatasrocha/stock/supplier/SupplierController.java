@@ -1,7 +1,6 @@
 package com.jonatasrocha.stock.supplier;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,16 +24,18 @@ import jakarta.validation.constraints.Size;
 @RequestMapping("/v1/suppliers")
 public class SupplierController extends BaseController {
 
-    private static final String SUPPLIER_NOT_FOUND_CODE = "SUPPLIER_NOT_FOUND";
-    private static final String SUPPLIER_CONFLICT_CODE = "SUPPLIER_CONFLICT";
+    private final SupplierService supplierService;
+    private final SupplierResponseMapper supplierResponseMapper;
+    private final SupplierRequestMapper supplierRequestMapper;
 
-    private static final String SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE = "Supplier not found";
-    private static final String SUPPLIER_EMAIL_ALREADY_USED = "Already exists a supplier with this same e-mail";
-
-    private final SupplierRepository supplierRepository;
-
-    public SupplierController(SupplierRepository supplierRepository) {
-        this.supplierRepository = supplierRepository;
+    public SupplierController(
+        SupplierService supplierService,
+        SupplierRequestMapper supplierRequestMapper,
+        SupplierResponseMapper supplierResponseMapper
+    ) {
+        this.supplierService = supplierService;
+        this.supplierRequestMapper = supplierRequestMapper;
+        this.supplierResponseMapper = supplierResponseMapper;
     }
 
     public record SupplierRequest(
@@ -67,16 +68,15 @@ public class SupplierController extends BaseController {
         }
     }
 
-    @Transactional
     @PostMapping
     public ResponseEntity<Response> create(@RequestBody @Valid SupplierRequest request) {
-        var newSupplier = SupplierEntity.of(request.name(), request.email(), request.phone());
-        if (this.supplierRepository.existsByEmail(newSupplier.getEmail())) {
-            return responseConflict( SUPPLIER_CONFLICT_CODE, SUPPLIER_EMAIL_ALREADY_USED);
+        var createResult = this.supplierService.create(this.supplierRequestMapper.map(request));
+        if (createResult.isFailure()) {
+            return responseFail(createResult.error());
         }
-        var supplierSaved = this.supplierRepository.save(newSupplier);
+        var supplierSaved = createResult.data();
         return responseCreated(
-            SupplierResponse.ofEntity(supplierSaved),
+            this.supplierResponseMapper.map(supplierSaved),
             "/v1/suppliers/{id}",
             supplierSaved.getId()
         );
@@ -84,40 +84,28 @@ public class SupplierController extends BaseController {
     
     @GetMapping("/{id}")
     public ResponseEntity<Response> getOne(@PathVariable("id") Long id) {
-        var supplierFound = this.supplierRepository.findById(id);
+        var supplierFound = this.supplierService.findSupplierById(id);
         if (supplierFound.isEmpty()) {
-            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
+            return responseFail(SupplierErrorCode.SUPPLIER_NOT_FOUND);
         }
-        return responseOk(SupplierResponse.ofEntity(supplierFound.get()));
+        return responseOk(this.supplierResponseMapper.map(supplierFound.get()));
     }
 
-    @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<Response> update(@PathVariable("id") Long id, @RequestBody @Valid SupplierRequest request) {
-        var supplierFound = this.supplierRepository.findById(id);
-        if (supplierFound.isEmpty()) {
-            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
+        var editResult = this.supplierService.edit(id, this.supplierRequestMapper.map(request));
+        if (editResult.isFailure()) {
+            return responseFail(editResult.error());
         }
-
-        var supplier = supplierFound.get();
-        var newSupplier = SupplierEntity.of(supplier.getId(), request.name(), request.email(), request.phone());
-        if (this.supplierRepository.existsByEmailAndIdNot(newSupplier.getEmail(), newSupplier.getId())) {
-            return responseConflict(SUPPLIER_CONFLICT_CODE, SUPPLIER_EMAIL_ALREADY_USED);
-        }
-
-        this.supplierRepository.save(newSupplier);
         return responseNoContent();
     }
 
-    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<Response> remove(@PathVariable("id") Long id) {
-        if (!this.supplierRepository.existsById(id)) {
-            return responseNotFound(SUPPLIER_NOT_FOUND_CODE, SUPPLIER_NOT_FOUND_DEFAULT_MESSAGE);
+        var removeResult = this.supplierService.removeById(id);
+        if (removeResult.isFailure()) {
+            return responseFail(removeResult.error());
         }
-
-        this.supplierRepository.deleteById(id);
-
         return responseNoContent();
     }
 

@@ -40,6 +40,17 @@ public class SupplierEntity extends BaseEntity {
         return SupplierEntity.of(null, name, email, phone);
     }
 
+    public static SupplierEntity of(Long id, SupplierEntity supplierEntity){
+        return new SupplierEntity(
+            id,
+            supplierEntity.getName(),
+            supplierEntity.getEmail(),
+            supplierEntity.getPhone(),
+            supplierEntity.getCreatedAt(),
+            supplierEntity.getUpdatedAt() 
+        );
+    }
+
     public static SupplierEntity of(Long id, String name, String email, String phone){
         return new SupplierEntity(
             id, 
