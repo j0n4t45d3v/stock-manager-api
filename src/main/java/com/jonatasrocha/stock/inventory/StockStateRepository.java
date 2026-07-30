@@ -21,7 +21,7 @@ public interface StockStateRepository extends JpaRepository<StockStateEntity, Lo
     @Query(value = """
     UPDATE StockStateEntity SET balance = balance + ?1 WHERE productId = ?2
     """) 
-    int incrementBalance(BigDecimal quantity, Long productId);
+    int increaseBalance(BigDecimal quantity, Long productId);
 
     boolean existsByProductId(Long productId);
 }

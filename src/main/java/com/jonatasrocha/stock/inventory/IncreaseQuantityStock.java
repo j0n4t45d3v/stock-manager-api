@@ -23,7 +23,7 @@ public class IncreaseQuantityStock implements StockQuantityOperation {
 
     @Override
     public Result<Void, ErrorCode> apply(BigDecimal amount, Long product) {
-        this.stockStateRepository.incrementBalance(amount, product);
+        this.stockStateRepository.increaseBalance(amount, product);
         return Result.successVoid();
     }
 
