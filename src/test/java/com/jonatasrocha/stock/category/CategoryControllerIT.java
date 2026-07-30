@@ -62,7 +62,7 @@ class CategoryControllerIT extends BaseIntegrationTest {
 
         @Test
         void shouldReturnBadRequestWhenNameIsBlank() throws Exception {
-            mockMvc.perform(makeCreateRequest("")).andExpect(status().isBadRequest());
+            mockMvc.perform(makeCreateRequest("")).andExpect(status().isUnprocessableContent());
         }
 
     }
@@ -120,7 +120,7 @@ class CategoryControllerIT extends BaseIntegrationTest {
         void shouldReturnBadRequestWhenNameIsBlank() throws Exception {
             var category = createCategory("Food");
 
-            mockMvc.perform(makeUpdateRequest(category.getId(), "")).andExpect(status().isBadRequest());
+            mockMvc.perform(makeUpdateRequest(category.getId(), "")).andExpect(status().isUnprocessableContent());
         }
 
     }

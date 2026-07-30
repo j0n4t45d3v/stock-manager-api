@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true 
+
+  devtools:
+    livereload:
+      enabled: false
+    remote:
+      restart:
+        enabled: false
+    restart:
+      enabled: false
