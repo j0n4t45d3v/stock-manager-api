@@ -186,7 +186,7 @@ public class ProductController extends BaseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable("id") Long id) {
         if (!this.productRepository.existsById(id)) {
-            return responseNotFound("CATEGORY_NOT_FOUND", "Category not found");
+            return responseNotFound("PRODUCT_NOT_FOUND", "Product not found");
         }
         this.productRepository.deleteById(id);
         return responseNoContent();
