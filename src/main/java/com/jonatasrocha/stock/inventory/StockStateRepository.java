@@ -13,7 +13,7 @@ public interface StockStateRepository extends JpaRepository<StockStateEntity, Lo
     UPDATE StockStateEntity
     SET balance = balance - ?1
     WHERE productId = ?2
-      AND balance >= ?1
+      AND availableBalance >= ?1
     """) 
     int decreaseBalance(BigDecimal quantity, Long productId);
 
@@ -22,6 +22,24 @@ public interface StockStateRepository extends JpaRepository<StockStateEntity, Lo
     UPDATE StockStateEntity SET balance = balance + ?1 WHERE productId = ?2
     """) 
     int increaseBalance(BigDecimal quantity, Long productId);
+
+    @Modifying
+    @Query(value = """
+    UPDATE StockStateEntity
+    SET reservedBalance = reservedBalance + ?1 
+    WHERE productId = ?2
+    AND availableBalance >= ?1
+    """) 
+    int reserveBalance(BigDecimal quantity, Long productId);
+
+    @Modifying
+    @Query(value = """
+    UPDATE StockStateEntity
+    SET reservedBalance = reservedBalance - ?1 
+    WHERE productId = ?2
+    AND reservedBalance >= ?1
+    """) 
+    int releaseReserveBalance(BigDecimal quantity, Long productId);
 
     boolean existsByProductId(Long productId);
 }

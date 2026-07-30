@@ -5,7 +5,8 @@ import com.jonatasrocha.stock.common.ErrorCode;
 enum InventoryErrorCode implements ErrorCode {
 
     INVENTORY_ALREADY_EXISTS("Already exists inventory for this product", STATUS_CONFLICT),
-    INSUFICCIENT_STOCK("Product not has this quantity available in stock", STATUS_UNPROCESSABLE_CONTENT);
+    INSUFICCIENT_STOCK("Product not has this quantity available in stock", STATUS_UNPROCESSABLE_CONTENT),
+    NOT_AVAILABLE_QUANTITY_TO_RELEASE("Product not has this quantity available to release", STATUS_UNPROCESSABLE_CONTENT);
 
     private final String message;
     private final int status;

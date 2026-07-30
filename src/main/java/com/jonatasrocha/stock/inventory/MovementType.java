@@ -2,7 +2,7 @@ package com.jonatasrocha.stock.inventory;
 
 public enum MovementType {
 
-    ENTRY((short) 0), EXIT((short) 1), RESERVE((short) 2);
+    ENTRY((short) 0), EXIT((short) 1), RESERVE((short) 2), RELEASE_RESERVE((short) 3);
 
     private final short value;
 

@@ -14,6 +14,12 @@ public class StockStateEntity extends BaseEntity{
 
     private BigDecimal balance;
 
+    @Column(name="reserved_balance")
+    private BigDecimal reservedBalance;
+
+    @Column(name="available_balance", insertable = false, updatable = false)
+    private BigDecimal availableBalance;
+
     @Column(name = "product_id")
     private Long productId;
 
@@ -33,6 +39,14 @@ public class StockStateEntity extends BaseEntity{
 
     public BigDecimal getBalance() {
         return balance;
+    }
+
+    public BigDecimal getReservedBalance() {
+        return reservedBalance;
+    }
+
+    public BigDecimal getAvailableBalance() {
+        return availableBalance;
     }
 
     public Long getProductId() {
