@@ -30,6 +30,7 @@ public class StockStateEntity extends BaseEntity{
     private StockStateEntity(BigDecimal balance, Long productId) {
         super(null, null, null);
         this.balance = balance;
+        this.reservedBalance = BigDecimal.ZERO;
         this.productId = productId;
     }
 
